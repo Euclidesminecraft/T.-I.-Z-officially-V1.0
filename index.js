@@ -12,83 +12,46 @@ const client = new Client({
     authStrategy: new LocalAuth({ clientId: "tiz-bot" }),
     puppeteer: {
         headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-accelerated-2d-canvas',
-            '--no-first-run',
-            '--no-zygote',
-            '--single-process',
-            '--disable-gpu'
-        ]
+        args: ['--no-sandbox','--disable-setuid-sandbox','--disable-dev-shm-usage','--no-first-run','--single-process','--disable-gpu']
     }
 });
 
-// QR ainda aparece mas vamos ignorar
 client.on('qr', (qr) => {
-    console.log('\n=== QR gerado (ignorar, usando código) ===');
+    console.log('\n=== QR gerado (ignorar) ===');
     qrcode.generate(qr, { small: true });
 });
 
-client.on('ready', () => {
-    console.log('\n✅ Bot conectado! Pronto para responder.');
-});
-
-client.on('authenticated', () => {
-    console.log('✅ Autenticado com sucesso!');
-});
-
-client.on('auth_failure', (msg) => {
-    console.error('❌ Falha na autenticação:', msg);
-});
+client.on('ready', () => console.log('\n✅ Bot conectado! Pronto.'));
+client.on('authenticated', () => console.log('✅ Autenticado!'));
+client.on('auth_failure', msg => console.error('❌ Falha:', msg));
 
 client.on('message', async (msg) => {
     if (msg.fromMe || msg.isStatus) return;
-
     try {
         const prompt = msg.body;
-        console.log(`📩 Mensagem: ${prompt}`);
-
-        const response = await axios.post(
-            'https://api.deepseek.com/v1/chat/completions',
-            {
-                model: 'deepseek-chat',
-                messages: [{ role: 'user', content: prompt }]
-            },
-            {
-                headers: { 'Authorization': `Bearer ${DEEPSEEK_KEY}` }
-            }
+        console.log(`📩 ${prompt}`);
+        const response = await axios.post('https://api.deepseek.com/v1/chat/completions',
+            { model: 'deepseek-chat', messages: [{ role: 'user', content: prompt }] },
+            { headers: { 'Authorization': `Bearer ${DEEPSEEK_KEY}` } }
         );
-
-        const reply = response.data.choices[0].message.content;
-        await msg.reply(reply);
-        console.log(`✅ Respondido`);
-
+        await msg.reply(response.data.choices[0].message.content);
     } catch (e) {
-        console.error('Erro DeepSeek:', e.message);
+        console.error('Erro:', e.message);
         await msg.reply('Erro ao conectar com DeepSeek.');
     }
 });
 
-// INICIA E GERA CÓDIGO DE PAREAMENTO
 client.initialize();
 
 setTimeout(async () => {
     try {
-        console.log('\n🔄 Gerando código de pareamento...');
         const code = await client.requestPairingCode(PHONE_NUMBER);
-
         console.log('\n========================================');
-        console.log('=== CÓDIGO DE PAREAMENTO WHATSAPP ===');
+        console.log('CÓDIGO DE PAREAMENTO:', code);
         console.log(`Número: ${PHONE_NUMBER}`);
-        console.log(`Código: ${code}`);
-        console.log('========================================');
-        console.log('WhatsApp > Aparelhos conectados >');
-        console.log('Conectar com número de telefone');
+        console.log('WhatsApp > Aparelhos > Conectar com número');
         console.log('========================================\n');
-
     } catch (err) {
-        console.log('Erro ao gerar código:', err.message);
+        console.log('Erro código:', err.message);
     }
 }, 10000);
