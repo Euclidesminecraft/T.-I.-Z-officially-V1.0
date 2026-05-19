@@ -1,0 +1,15 @@
+{
+  "name": "whatsapp-deepseek-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "whatsapp-web.js": "^1.26.0",
+    "qrcode-terminal": "^0.12.0",
+    "axios": "^1.7.2",
+    "puppeteer": "^22.0.0"
+  }
+}
