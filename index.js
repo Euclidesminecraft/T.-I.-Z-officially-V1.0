@@ -51,9 +51,14 @@ client.on('message', async (msg) => {
     if (msg.fromMe ||!msg.body) return;
     try {
         const res = await axios.post('https://api.deepseek.com/v1/chat/completions',
-            { model: 'deepseek-chat', messages: [{role:'user', content: msg.body}] },
-            { headers: { Authorization: `Bearer ${DEEPSEEK_KEY}` }, timeout: 30000 }
-        );
+  { model: 'deepseek-chat', 
+    messages: [
+      {role:'system', content: `Você é T.I.Z Coder. REGRAS: 1) Sempre use nomes de variáveis em INGLÊS (PHONE_NUMBER, NODE_VERSION). 2) package.json precisa de "start":"node index.js" e puppeteer@22.0.0. 3) Responda em português simples com código pronto para copiar.`},
+      {role:'user', content: msg.body}
+    ] 
+  },
+  { headers: { Authorization: `Bearer ${DEEPSEEK_KEY}` }, timeout: 30000 }
+);
         await msg.reply(res.data.choices[0].message.content);
     } catch (e) {
         await msg.reply('Erro DeepSeek');
